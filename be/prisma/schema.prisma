@@ -35,6 +35,8 @@ model Product {
 model EmployeeProduct {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   date DateTime
+  quantity Int
+  totalIncome Float
   employeeId String @db.ObjectId 
   employee Employee @relation(fields: [employeeId], references: [id])
   productId String @db.ObjectId
