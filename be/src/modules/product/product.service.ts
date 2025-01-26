@@ -12,7 +12,7 @@ export class ProductService {
       const newProduct = await this.prisma.product.create({
         data: {
           name: addProduct.name,
-          unitPay: addProduct.unitPay,
+          unitPay: +addProduct.unitPay,
         },
       });
       return newProduct;
