@@ -1,10 +1,13 @@
-import { IsDate, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class Income {
   @IsDate()
-  date: Date;
+  date: string;
 
   @IsNumber()
   @IsNotEmpty()
   quantity: number;
+
+  @IsString()
+  productId: string;
 }

@@ -7,21 +7,14 @@ import * as moment from 'moment-timezone';
 export class EmployeeProductService {
   constructor(private prisma: PrismaService) {}
 
-  async addIncomeByDay(
-    incomeDto: Income,
-    employeeId: string,
-    productId: string,
-  ) {
+  async addIncomeByDay(incomeDto: Income, employeeId: string) {
     try {
       // Kiểm tra xem ngày có hợp lệ không
-      const date = moment(incomeDto.date, 'DD/MM/YYYY', true);
-      if (!date.isValid()) {
-        throw new Error('Ngày không hợp lệ');
-      }
+      const date = moment.tz(incomeDto.date, 'Asia/Ho_Chi_Minh').format();
 
       // Tính tiền công (giả sử có bảng "Product" lưu thông tin về giá tiền của mỗi sản phẩm)
       const product = await this.prisma.product.findUnique({
-        where: { id: productId },
+        where: { id: incomeDto.productId },
       });
       if (!product) {
         throw new Error('Sản phẩm không tồn tại');
@@ -33,14 +26,16 @@ export class EmployeeProductService {
       const income = await this.prisma.employeeProduct.create({
         data: {
           employeeId,
-          productId,
-          date: date.toDate(), // Chuyển ngày sang định dạng Date
+          productId: incomeDto.productId,
+          date: date, // Giữ nguyên định dạng ISO 8601 với múi giờ
           quantity: incomeDto.quantity,
-          totalIncome, // Thêm tổng tiền công
+          totalIncome,
         },
       });
 
-      return income;
+      return {
+        income,
+      };
     } catch (error) {
       throw new Error(error.message || 'Có lỗi xảy ra khi thêm thu nhập');
     }
@@ -52,11 +47,11 @@ export class EmployeeProductService {
       const firstDay = moment
         .tz(`${year}-${month}-01`, 'Asia/Ho_Chi_Minh')
         .startOf('month')
-        .format('DD/MM/YYYY');
+        .format(); // Chuyển sang dạng Date
       const lastDay = moment
         .tz(`${year}-${month}-01`, 'Asia/Ho_Chi_Minh')
         .endOf('month')
-        .format('DD/MM/YYYY');
+        .format();
 
       // Tìm sản phẩm của nhân viên trong tháng
       const findByEmployee = await this.prisma.employeeProduct.findMany({
@@ -69,7 +64,14 @@ export class EmployeeProductService {
         },
       });
 
-      return findByEmployee;
+      const payment = await findByEmployee.reduce((sum, product) => {
+        return sum + product.totalIncome;
+      }, 0);
+
+      return {
+        findByEmployee,
+        payment,
+      };
     } catch (error) {
       throw new Error(error);
     }

@@ -20,4 +20,8 @@ export class ProductService {
       throw new Error(error);
     }
   }
+
+  async listAllProduct() {
+    return await this.prisma.product.findMany();
+  }
 }

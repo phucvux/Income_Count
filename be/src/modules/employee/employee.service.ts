@@ -15,4 +15,8 @@ export class EmployeeService {
     });
     return newEmployee;
   }
+
+  async listEmployee() {
+    return await this.prisma.employee.findMany();
+  }
 }
